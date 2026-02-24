@@ -1,36 +1,38 @@
-// api/ocr/route.ts
+// app/api/ocr/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
+import vision from "@google-cloud/vision";
+
+const client = new vision.ImageAnnotatorClient({
+  credentials: JSON.parse(
+    process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON as string
+  ),
+});
 
 export async function POST(req: NextRequest) {
-  const formData = await req.formData();
-  const file = formData.get("file") as File;
-  if (!file) return NextResponse.json({ error: "Arquivo não enviado" }, { status: 400 });
+  try {
+    const formData = await req.formData();
+    const file = formData.get("file") as File;
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const base64Image = buffer.toString("base64");
-
-  // Substitua YOUR_API_KEY pelo valor da chave criada
-  const apiKey = process.env.YOUTUBE_API_KEY
-;
-
-  const res = await fetch(
-    `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        requests: [
-          {
-            image: { content: base64Image },
-            features: [{ type: "TEXT_DETECTION" }]
-          }
-        ]
-      })
+    if (!file) {
+      return NextResponse.json(
+        { error: "Arquivo não enviado" },
+        { status: 400 }
+      );
     }
-  );
 
-  const data = await res.json();
-  const text = data.responses?.[0]?.fullTextAnnotation?.text || "";
+    const buffer = Buffer.from(await file.arrayBuffer());
 
-  return NextResponse.json({ text });
+    const [result] = await client.textDetection(buffer);
+
+    const text = result.textAnnotations?.[0]?.description || "";
+
+    return NextResponse.json({ text });
+  } catch (error) {
+    console.error("Erro OCR:", error);
+    return NextResponse.json(
+      { error: "Erro ao processar OCR" },
+      { status: 500 }
+    );
+  }
 }
