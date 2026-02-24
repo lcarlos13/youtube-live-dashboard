@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Tesseract from "tesseract.js";
 
 export default function EscalasPage() {
   const [image, setImage] = useState<File | null>(null);
@@ -21,8 +20,26 @@ export default function EscalasPage() {
     setLoading(true);
     setText("");
 
-    const { data } = await Tesseract.recognize(image, "por");
-    setText(data.text);
+    try {
+      const formData = new FormData();
+      formData.append("file", image);
+
+      const response = await fetch("/api/ocr", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error);
+      }
+
+      setText(data.text);
+    } catch (error) {
+      console.error(error);
+      setText("Erro ao processar imagem.");
+    }
 
     setLoading(false);
   };
