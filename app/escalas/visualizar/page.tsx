@@ -182,8 +182,13 @@ export default function VisualizarEscalas() {
         ) : (
           <div className="space-y-6">
 
-            {Object.entries(escalasAgrupadas).map(
-              ([escalaId, itens]: any) => (
+            {Object.entries(escalasAgrupadas)
+              .sort(([, a]: any, [, b]: any) => {
+                const dataA = a[0].data.slice(0, 10);
+                const dataB = b[0].data.slice(0, 10);
+                return dataA.localeCompare(dataB);
+              })
+              .map(([escalaId, itens]: any) => (
                 <div
                   key={escalaId}
                   className="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-lg overflow-hidden"

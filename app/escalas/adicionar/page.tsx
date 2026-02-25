@@ -201,19 +201,6 @@ export default function EscalasPage() {
           <h1 className="text-2xl font-semibold tracking-tight">
             📋 Leitor de Escalas
           </h1>
-
-          <Link href="/">
-            <button className="
-              border border-neutral-600
-              px-4 py-2
-              rounded-full
-              text-sm
-              hover:bg-white hover:text-black
-              transition-colors
-            ">
-              ← Voltar
-            </button>
-          </Link>
         </div>
 
         {/* Card principal */}
