@@ -77,6 +77,23 @@ export default function VisualizarEscalas() {
     }
   };
 
+  const badgePessoaColor = (funcao: string) => {
+    switch (funcao.toLowerCase()) {
+      case "live":
+        return "bg-purple-500/10 text-purple-200 border-purple-500/30";
+      case "fotografia":
+        return "bg-yellow-500/10 text-yellow-200 border-yellow-500/30";
+      case "gravação":
+      case "gravacao":
+        return "bg-blue-500/10 text-blue-200 border-blue-500/30";
+      case "computador telão":
+      case "computador telao":
+        return "bg-green-500/10 text-green-200 border-green-500/30";
+      default:
+        return "bg-zinc-700/20 text-zinc-200 border-zinc-600";
+    }
+  };
+
   const formatarData = (dataString: string) => {
     const apenasData = dataString.split("T")[0]; // remove parte do horário
     const [ano, mes, dia] = apenasData.split("-");
@@ -240,17 +257,25 @@ export default function VisualizarEscalas() {
                           key={item.participante_id}
                           className="flex justify-between items-center bg-zinc-900 border border-zinc-800 rounded-xl p-4 hover:border-white transition"
                         >
-                          <span
-                            className={`text-xs px-3 py-1 rounded-full border ${badgeColor(
-                              item.funcao
-                            )}`}
-                          >
-                            {item.funcao}
-                          </span>
+                          <div className="flex gap-3 items-center">
 
-                          <span className="font-medium">
-                            {item.nome_pessoa}
-                          </span>
+                            <span
+                              className={`text-xs px-3 py-1 rounded-full border ${badgeColor(
+                                item.funcao
+                              )}`}
+                            >
+                              {item.funcao}
+                            </span>
+
+                            <span
+                              className={`text-xs px-3 py-1 rounded-full border ${badgePessoaColor(
+                                item.funcao
+                              )}`}
+                            >
+                              {item.nome_pessoa}
+                            </span>
+
+                          </div>
                         </div>
                       ))}
 
