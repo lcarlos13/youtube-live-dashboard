@@ -93,6 +93,32 @@ export default function EscalasMenu() {
             </div>
           </Link>
 
+          {/* Bloqueios */}
+          <Link href="/escalas/bloqueios">
+            <div className="
+              bg-zinc-900
+              border border-zinc-800
+              rounded-2xl
+              p-6
+              hover:border-red-500
+              hover:bg-zinc-800
+              transition-all
+              cursor-pointer
+            ">
+              <div className="flex items-center gap-4">
+                <div className="text-3xl">🚫</div>
+                <div>
+                  <h2 className="text-lg font-medium">
+                    Bloqueios
+                  </h2>
+                  <p className="text-sm text-zinc-400">
+                    Gerenciar indisponibilidade de participantes
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Link>
+
         </div>
 
       </div>

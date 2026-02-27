@@ -139,40 +139,54 @@ export default function EscalasPage() {
   const handleSave = async () => {
     const linhas = processedText.split("\n").filter(Boolean);
 
-    const dados = linhas.map((linha) => {
+    const dadosFinal = [];
+
+    for (const linha of linhas) {
       const [data, horario, funcao, nome] = linha
         .split(",")
         .map((s) => s.trim());
 
-      return { data, horario, funcao, nome };
-    });
+      // 🔹 Busca ou cria pessoa
+      const pessoaRes = await fetch("/api/pessoas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome }),
+      });
 
-    const response = await fetch("/api/escalas", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(dados),
-    });
+      const pessoa = await pessoaRes.json();
 
-    const result = await response.json();
-
-    if (response.ok) {
-      setSuccessMessage("Dados salvos com sucesso!");
-
-      // limpa tudo
-      setImage(null);
-      setText("");
-      setProcessedText("");
-
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-
-    } else {
-      alert("Erro ao salvar");
+      dadosFinal.push({
+        data,
+        horario,
+        funcao,
+        pessoa_id: pessoa.id,
+      });
     }
-  };
+
+  const response = await fetch("/api/escalas", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(dadosFinal),
+  });
+
+  if (response.ok) {
+    setSuccessMessage("Dados salvos com sucesso!");
+
+    setImage(null);
+    setText("");
+    setProcessedText("");
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  } else {
+      const erro = await response.json();
+      alert(erro.error);
+      return;
+    }
+};
 
   return (
     <main className="bg-zinc-950 min-h-screen text-white">

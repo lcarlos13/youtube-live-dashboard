@@ -14,13 +14,15 @@ export async function GET(req: NextRequest) {
   const result = await pool.query(
     `
     SELECT 
-      ep.nome_pessoa,
+      p.nome AS nome_pessoa,
       ep.funcao,
       COUNT(*) as total
     FROM escala_participantes ep
     JOIN escalas e ON e.id = ep.escala_id
+    JOIN pessoas p ON p.id = ep.pessoa_id
     WHERE e.data BETWEEN $1 AND $2
-    GROUP BY ep.nome_pessoa, ep.funcao
+    GROUP BY p.nome, ep.funcao
+    ORDER BY p.nome
     `,
     [inicio, fim]
   );

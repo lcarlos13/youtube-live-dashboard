@@ -1,6 +1,7 @@
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
 import type { Metadata } from "next";
+import "react-datepicker/dist/react-datepicker.css";
 
 export const metadata: Metadata = {
   title: "Midia Dashboard",
@@ -25,7 +26,6 @@ export default function RootLayout({
           {children}
         </div>
 
-        <BottomNav />
       </body>
     </html>
   );
