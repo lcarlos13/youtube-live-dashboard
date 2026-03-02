@@ -44,6 +44,23 @@ export default function CadastroBloqueios() {
   const [mostrarInicio, setMostrarInicio] = useState(false);
   const [mostrarFim, setMostrarFim] = useState(false);
 
+  const [user, setUser] = useState<{
+    role: "admin" | "user";
+    pessoa_id: number;
+  } | null>(null);
+
+  useEffect(() => {
+    async function loadUser() {
+      const res = await fetch("/api/me");
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data);
+      }
+    }
+
+    loadUser();
+  }, []);
+
   const formatarParaBanco = (date: Date) => {
     const ano = date.getFullYear();
     const mes = String(date.getMonth() + 1).padStart(2, "0");
@@ -190,10 +207,14 @@ export default function CadastroBloqueios() {
             className="w-full bg-black border border-zinc-700 rounded-xl p-3"
           >
             <option value="">Selecione a pessoa</option>
-            {pessoas.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.nome}
-              </option>
+            {pessoas
+              .filter(p =>
+                user?.role === "admin" ? true : p.id === user?.pessoa_id
+              )
+              .map(p => (
+                <option key={p.id} value={p.id}>
+                  {p.nome}
+                </option>
             ))}
           </select>
 
@@ -333,16 +354,17 @@ export default function CadastroBloqueios() {
                   </p>
                 )}
               </div>
-
-              <button
-                onClick={() => {
-                  setBloqueioSelecionado(b.id);
-                  setModalAberto(true);
-                }}
-                className="text-red-500 hover:text-red-400 transition"
-              >
-                🗑️
-              </button>
+              {(user?.role === "admin" || b.pessoa_id === user?.pessoa_id) && (
+                <button
+                  onClick={() => {
+                    setBloqueioSelecionado(b.id);
+                    setModalAberto(true);
+                  }}
+                  className="text-red-500 hover:text-red-400 transition"
+                >
+                  🗑️
+                </button>
+              )}
             </div>
           ))}
         </div>

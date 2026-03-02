@@ -201,8 +201,10 @@ export default function VisualizarEscalas() {
 
             {Object.entries(escalasAgrupadas)
               .sort(([, a]: any, [, b]: any) => {
-                const dataA = a[0].data.slice(0, 10);
-                const dataB = b[0].data.slice(0, 10);
+                //const dataA = a[0].data.slice(0, 10);
+                //const dataB = b[0].data.slice(0, 10);
+                const dataA = `${a[0].data}${a[0].horario}`;
+                const dataB = `${b[0].data}${b[0].horario}`;
                 return dataA.localeCompare(dataB);
               })
               .map(([escalaId, itens]: any) => (

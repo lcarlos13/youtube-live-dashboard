@@ -34,6 +34,7 @@ export default function LoginPage() {
       router.push("/trocar-senha");
     } else {
       router.push("/");
+      router.refresh();
     }
   }
 

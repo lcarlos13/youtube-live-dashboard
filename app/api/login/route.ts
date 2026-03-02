@@ -15,7 +15,19 @@ export async function POST(req: Request) {
     }
 
     const result = await pool.query(
-      `SELECT * FROM usuarios WHERE email = $1 AND ativo = true`,
+      `
+      SELECT 
+        u.id,
+        u.pessoa_id,
+        u.perfil,
+        u.senha_hash,
+        u.precisa_trocar_senha,
+        p.nome
+      FROM usuarios u
+      INNER JOIN pessoas p ON p.id = u.pessoa_id
+      WHERE u.email = $1
+        AND u.ativo = true
+      `,
       [email]
     );
 
@@ -45,12 +57,13 @@ export async function POST(req: Request) {
     {
       id: usuario.id,
       pessoa_id: usuario.pessoa_id,
-      perfil: usuario.perfil,
+      name: usuario.nome,
+      role: usuario.perfil, // padronizamos para "role"
       precisaTrocarSenha: usuario.precisa_trocar_senha
     },
     process.env.JWT_SECRET!,
     { expiresIn: "8h" }
-  );
+    );
 
     const response = NextResponse.json({
       success: true,
@@ -60,8 +73,9 @@ export async function POST(req: Request) {
     response.cookies.set("auth", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       path: "/",
+      maxAge: 60 * 60 * 4,
     });
 
     return response;

@@ -3,68 +3,79 @@ import { pool } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   const dados = await req.json();
-
   const client = await pool.connect();
 
   try {
     await client.query("BEGIN");
 
-    // Agrupar por data + horário (1 escala por data/horário)
-    const { data, horario } = dados[0];
-
-    // Criar escala
-    const escalaResult = await client.query(
-      `
-      INSERT INTO escalas (data, horario)
-      VALUES ($1, $2)
-      RETURNING id
-      `,
-      [data, horario]
-    );
-
-    const escalaId = escalaResult.rows[0].id;
+    // 🔥 Agrupar por data + horario
+    const grupos: Record<string, any[]> = {};
 
     for (const item of dados) {
-      const { pessoa_id, funcao } = item;
+      const chave = `${item.data}_${item.horario}`;
 
-      // 🔥 VERIFICA BLOQUEIO
-      const bloqueio = await client.query(
-        `
-        SELECT *
-        FROM bloqueios
-        WHERE pessoa_id = $1
-          AND data = $2
-          AND (
-                -- Dia inteiro
-                (horario_inicio IS NULL AND horario_fim IS NULL)
-                OR
-                -- Dentro do horário bloqueado
-                ($3 BETWEEN horario_inicio AND horario_fim)
-              )
-        `,
-        [pessoa_id, data, horario]
-      );
-
-      if (bloqueio.rows.length > 0) {
-        await client.query("ROLLBACK");
-
-        return NextResponse.json(
-          {
-            error: `Pessoa bloqueada para ${data} às ${horario}`,
-          },
-          { status: 400 }
-        );
+      if (!grupos[chave]) {
+        grupos[chave] = [];
       }
 
-      // Inserir participante
-      await client.query(
+      grupos[chave].push(item);
+    }
+
+    // 🔥 Para cada grupo, criar uma escala
+    for (const chave in grupos) {
+      const itens = grupos[chave];
+      const { data, horario } = itens[0];
+
+      const escalaResult = await client.query(
         `
-        INSERT INTO escala_participantes 
-          (escala_id, pessoa_id, funcao)
-        VALUES ($1, $2, $3)
+        INSERT INTO escalas (data, horario)
+        VALUES ($1, $2)
+        RETURNING id
         `,
-        [escalaId, pessoa_id, funcao]
+        [data, horario]
       );
+
+      const escalaId = escalaResult.rows[0].id;
+
+      // 🔥 Inserir participantes desse grupo
+      for (const item of itens) {
+        const { pessoa_id, funcao } = item;
+
+        // Verificar bloqueio
+        const bloqueio = await client.query(
+          `
+          SELECT *
+          FROM bloqueios
+          WHERE pessoa_id = $1
+            AND data = $2
+            AND (
+              (horario_inicio IS NULL AND horario_fim IS NULL)
+              OR
+              ($3 BETWEEN horario_inicio AND horario_fim)
+            )
+          `,
+          [pessoa_id, data, horario]
+        );
+
+        if (bloqueio.rows.length > 0) {
+          await client.query("ROLLBACK");
+          return NextResponse.json(
+            {
+              error: `Pessoa ${pessoa_id} bloqueada para ${data} às ${horario}`,
+            },
+            { status: 400 }
+          );
+        }
+
+        await client.query(
+          `
+          INSERT INTO escala_participantes
+            (escala_id, pessoa_id, funcao)
+          VALUES ($1, $2, $3)
+          `,
+          [escalaId, pessoa_id, funcao]
+        );
+      }
     }
 
     await client.query("COMMIT");

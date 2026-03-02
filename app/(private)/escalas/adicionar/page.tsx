@@ -10,6 +10,7 @@ export default function EscalasPage() {
   const [loading, setLoading] = useState(false);
   const [processedText, setProcessedText] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [previewData, setPreviewData] = useState<any[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -27,6 +28,9 @@ export default function EscalasPage() {
     if (e.target.files && e.target.files[0]) {
       setImage(e.target.files[0]);
     }
+    setProcessedText("");
+    setPreviewData([]);
+    setText("");
   };
 
   const handleProcessImage = async () => {
@@ -125,7 +129,6 @@ export default function EscalasPage() {
         linhas.push(`${novaData}, ${hora}, ${tipo}, ${nome}`)
       }
 
-      console.log(linhas.join("\n"))
       setProcessedText(linhas.join("\n"))
 
     } catch (error) {
@@ -163,29 +166,60 @@ export default function EscalasPage() {
       });
     }
 
-  const response = await fetch("/api/escalas", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(dadosFinal),
-  });
+    const response = await fetch("/api/escalas", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(dadosFinal),
+    });
 
-  if (response.ok) {
-    setSuccessMessage("Dados salvos com sucesso!");
+    if (response.ok) {
+      setSuccessMessage("Dados salvos com sucesso!");
 
-    setImage(null);
-    setText("");
-    setProcessedText("");
+      setImage(null);
+      setText("");
+      setProcessedText("");
+      setPreviewData([]);
 
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } else {
+        const erro = await response.json();
+        alert(erro.error);
+        return;
+      }
+};
+
+const previewJSONData = async () => {
+    const linhas = processedText.split("\n").filter(Boolean);
+
+    const dadosFinal = [];
+
+    for (const linha of linhas) {
+      const [data, horario, funcao, nome] = linha
+        .split(",")
+        .map((s) => s.trim());
+
+      // 🔹 Busca ou cria pessoa
+      const pessoaRes = await fetch("/api/pessoas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome }),
+      });
+
+      const pessoa = await pessoaRes.json();
+
+      dadosFinal.push({
+        data,
+        horario,
+        funcao,
+        pessoa_id: pessoa.id,
+      });
     }
-  } else {
-      const erro = await response.json();
-      alert(erro.error);
-      return;
-    }
+
+    setPreviewData(dadosFinal);
 };
 
   return (
@@ -327,9 +361,23 @@ export default function EscalasPage() {
                   resize-none
                 "
               />
+              {previewData.length > 0 && (
+                <div className="mt-6 bg-zinc-900 p-4 rounded-xl border border-zinc-700">
+                  <h2 className="text-lg font-bold mb-2">Preview dos dados</h2>
+                  <pre className="text-sm text-green-400 overflow-auto">
+                    {JSON.stringify(previewData, null, 2)}
+                  </pre>
+                </div>
+              )}
+              <button
+                onClick={previewJSONData}
+                className="mt-4 bg-green-600 px-4 py-2 rounded-lg mr-4"
+              >
+                Visualizar JSON gerado
+              </button>
               <button
                 onClick={handleSave}
-                className="mt-4 bg-green-600 px-4 py-2 rounded-lg"
+                className="mt-4 bg-green-600 px-4 py-2 rounded-lg mr-4"
               >
                 Salvar no banco
               </button>

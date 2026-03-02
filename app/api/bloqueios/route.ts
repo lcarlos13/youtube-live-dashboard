@@ -1,5 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
+
+async function getUserFromToken() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth")?.value;
+
+  if (!token) return null;
+
+  try {
+    return jwt.verify(token, process.env.JWT_SECRET!) as {
+      id: number;
+      role: "admin" | "user";
+      pessoa_id: number;
+    };
+  } catch {
+    return null;
+  }
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -78,6 +97,12 @@ export async function POST(req: NextRequest) {
 
 
 export async function DELETE(req: NextRequest) {
+  const user = await getUserFromToken();
+
+  if (!user) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  }
+
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
 
@@ -85,6 +110,32 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json(
       { error: "ID obrigatório" },
       { status: 400 }
+    );
+  }
+
+  // 👑 Se for admin → pode deletar direto
+  if (user.role === "admin") {
+    await pool.query(`DELETE FROM bloqueios WHERE id = $1`, [id]);
+    return NextResponse.json({ success: true });
+  }
+
+  // 👤 Se for user → precisa verificar se o bloqueio é dele
+  const check = await pool.query(
+    `SELECT pessoa_id FROM bloqueios WHERE id = $1`,
+    [id]
+  );
+
+  if (check.rows.length === 0) {
+    return NextResponse.json(
+      { error: "Bloqueio não encontrado" },
+      { status: 404 }
+    );
+  }
+
+  if (check.rows[0].pessoa_id !== user.pessoa_id) {
+    return NextResponse.json(
+      { error: "Sem permissão para excluir este bloqueio" },
+      { status: 403 }
     );
   }
 
