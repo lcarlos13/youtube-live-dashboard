@@ -140,6 +140,7 @@ export default function EscalasPage() {
   };
 
   const handleSave = async () => {
+    setLoading(true);
     const linhas = processedText.split("\n").filter(Boolean);
 
     const dadosFinal = [];
@@ -181,18 +182,21 @@ export default function EscalasPage() {
       setText("");
       setProcessedText("");
       setPreviewData([]);
+      setLoading(false);
 
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
     } else {
         const erro = await response.json();
+        setLoading(false);
         alert(erro.error);
         return;
       }
 };
 
 const previewJSONData = async () => {
+    setLoading(true);
     const linhas = processedText.split("\n").filter(Boolean);
 
     const dadosFinal = [];
@@ -220,6 +224,7 @@ const previewJSONData = async () => {
     }
 
     setPreviewData(dadosFinal);
+    setLoading(false);
 };
 
   return (
@@ -371,15 +376,17 @@ const previewJSONData = async () => {
               )}
               <button
                 onClick={previewJSONData}
+                disabled={loading}
                 className="mt-4 bg-green-600 px-4 py-2 rounded-lg mr-4"
               >
-                Visualizar JSON gerado
+                {loading ? "Gerando JSON..." : "Visualizar JSON gerado"}
               </button>
               <button
                 onClick={handleSave}
+                disabled={loading}
                 className="mt-4 bg-green-600 px-4 py-2 rounded-lg mr-4"
               >
-                Salvar no banco
+                {loading ? "Salvando escala..." : "Salvar"}
               </button>
             </div>
           )}

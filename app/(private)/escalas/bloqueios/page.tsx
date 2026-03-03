@@ -105,7 +105,9 @@ export default function CadastroBloqueios() {
 
   const salvar = async () => {
     if (!pessoaId || !data) {
-      alert("Selecione a pessoa e a data");
+      toast.error("Selecione a pessoa e a data", {
+        duration: 3000,
+      });
       return;
     }
 
@@ -125,7 +127,9 @@ export default function CadastroBloqueios() {
 
     if (!response.ok) {
       const erro = await response.json();
-      alert(erro.error);
+      toast.error(`Erro - ${erro.error}`, {
+        duration: 3000,
+      });
       return;
     }
 
