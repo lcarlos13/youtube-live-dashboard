@@ -28,14 +28,6 @@ export function proxy(request: NextRequest) {
       process.env.JWT_SECRET!
     ) as any;
 
-    // 🔐 Bloquear rota /usuarios se não for admin
-    if (
-      pathname.startsWith("/usuarios") &&
-      decoded.perfil !== "admin"
-    ) {
-      return NextResponse.redirect(new URL("/", request.url));
-    }
-
     if (
       decoded.precisaTrocarSenha &&
       !pathname.startsWith("/trocar-senha")

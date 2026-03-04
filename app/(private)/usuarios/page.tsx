@@ -9,6 +9,7 @@ interface Pessoa {
 
 interface Usuario {
   id: number;
+  pessoa_id: number;
   email: string;
   perfil: string;
   ativo: boolean;
@@ -252,9 +253,18 @@ export default function UsuariosPage() {
 
       {/* ================= LISTA ================= */}
       <div>
-        <h2 className="text-xl font-bold text-white mb-4">
-          Usuários Cadastrados
-        </h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-white">
+            Usuários Cadastrados
+          </h2>
+
+          <button
+            onClick={() => window.location.href = "/funcoes"}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm"
+          >
+            Gerenciar Funções
+          </button>
+        </div>
 
         <div className="overflow-x-auto">
           <table className="w-full border border-zinc-700 text-sm">

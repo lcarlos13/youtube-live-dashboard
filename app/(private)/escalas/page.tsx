@@ -62,6 +62,34 @@ export default function EscalasMenu() {
             </Link>
           )}
 
+          {/* Gerar Escala */}
+          {(user?.role === "admin") && (
+            <Link href="/escalas/gerar">
+              <div className="
+                bg-zinc-900
+                border border-zinc-800
+                rounded-2xl
+                p-6
+                hover:border-white
+                hover:bg-zinc-800
+                transition-all
+                cursor-pointer
+              ">
+                <div className="flex items-center gap-4">
+                  <div className="text-3xl">⭐</div>
+                  <div>
+                    <h2 className="text-lg font-medium">
+                      Gerar Escala
+                    </h2>
+                    <p className="text-sm text-zinc-400">
+                      Gere automaticamente escalas inteligentes com base em histórico e disponibilidade.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          )}
+
           {/* Visualizar Escalas */}
           <Link href="/escalas/visualizar">
             <div className="
