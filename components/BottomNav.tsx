@@ -56,6 +56,16 @@ export default function BottomNav({ role, name }: Props) {
           </Link>
         )}
 
+        {role === "admin" && name === "Junior Ferreira" && (
+          <Link
+            href="/shorts"
+            className={`flex flex-col items-center text-xs ${isActive("/shorts")}`}
+          >
+            <span className="text-xl">🎬</span>
+            Shorts
+          </Link>
+        )}
+
         <button
           onClick={handleLogout}
           className="flex flex-col items-center text-xs text-zinc-500 hover:text-red-400"

@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 
 async function gerarHash() {
-  const senha = "teste123";
+  const senha = "mudar123";
   const hash = await bcrypt.hash(senha, 10);
   console.log(hash);
 }
