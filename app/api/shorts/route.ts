@@ -35,14 +35,22 @@ export async function GET(req: Request) {
 
   const videosData = await videosRes.json();
 
+  const durationMap: any = {};
+
+  videosData.items.forEach((video: any) => {
+    durationMap[video.id] = video.contentDetails.duration;
+  });
+
   const shorts = playlistData.items
-    .map((item: any, index: number) => ({
+    .map((item: any) => ({
       id: item.snippet.resourceId.videoId,
       title: item.snippet.title,
       publishedAt: item.snippet.publishedAt,
-      duration: videosData.items[index].contentDetails.duration
+      duration: durationMap[item.snippet.resourceId.videoId]
     }))
     .filter((v: any) => {
+      if (!v.duration) return false;
+
       const match = v.duration.match(/PT(\d+)S/);
       return match && parseInt(match[1]) <= 60;
     });
